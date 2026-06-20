@@ -124,7 +124,7 @@ export default function ContactsImport({
                       <li>Apenas <strong>nome</strong> ou <strong>email</strong> são obrigatórios (pelo menos um)</li>
                       <li>Colunas reconhecidas: Nome/Name, Email, Telefone/Telemóvel/Phone, Empresa/Company, Lista/List, Tipo/Tags</li>
                       <li>Colunas não reconhecidas (datas, observações, links, etc.) são guardadas nas notas do contacto</li>
-                      <li>Se houver coluna de tipo (ex: "Tipo de cliente"), tentamos classificar automaticamente como Cliente, Colega ou Outro</li>
+                      <li>Se houver coluna de tipo (ex: 'Tipo de cliente'), tentamos classificar automaticamente como Cliente, Colega ou Outro</li>
                     </ul>
                   </p>
                 </div>

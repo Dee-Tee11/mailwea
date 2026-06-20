@@ -9,6 +9,7 @@ const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: '📊' },
   { id: 'contacts', label: 'Contactos', icon: '👥' },
   { id: 'send', label: 'Enviar', icon: '📤' },
+  { id: 'test', label: 'Teste', icon: '🧪' },
   { id: 'settings', label: 'Configurações', icon: '⚙️' },
 ]
 
