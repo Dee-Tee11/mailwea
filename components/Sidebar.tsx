@@ -8,7 +8,7 @@ interface SidebarProps {
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: '📊' },
   { id: 'contacts', label: 'Contactos', icon: '👥' },
-  { id: 'lists', label: 'Listas', icon: '📋' },
+  { id: 'send', label: 'Enviar', icon: '📤' },
   { id: 'settings', label: 'Configurações', icon: '⚙️' },
 ]
 

@@ -49,20 +49,21 @@ export default function Dashboard() {
 
   useEffect(() => {
     loadData()
-    
+
     // Listen for storage changes
     const handleStorageChange = () => {
       loadData()
     }
-    
+
     window.addEventListener('storage', handleStorageChange)
     // Custom event for same-tab changes
     window.addEventListener('storageUpdate', handleStorageChange)
-    
+
     return () => {
       window.removeEventListener('storage', handleStorageChange)
       window.removeEventListener('storageUpdate', handleStorageChange)
     }
+  }, [])
 
   if (!data) {
     return <div className="text-center py-10">Carregando...</div>
