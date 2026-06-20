@@ -7,6 +7,8 @@ import ContactsImport from './ContactsImport'
 export default function Contacts() {
   const [contacts, setContacts] = useState<Contact[]>([])
   const [showModal, setShowModal] = useState(false)
+  const [filterByEmail, setFilterByEmail] = useState(false)
+  const [filterByPhone, setFilterByPhone] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -81,7 +83,11 @@ export default function Contacts() {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Contactos</h2>
-          <p className="text-gray-500 dark:text-gray-400">Gerir contactos ({contacts.length})</p>
+          <p className="text-gray-500 dark:text-gray-400">Gerir contactos ({contacts.filter(c => {
+            if (filterByEmail && !c.email) return false
+            if (filterByPhone && !c.phone) return false
+            return true
+          }).length})</p>
         </div>
         <div className="flex gap-2">
           <button
@@ -91,6 +97,34 @@ export default function Contacts() {
             ➕ Adicionar Contacto
           </button>
           <ContactsImport onImportComplete={loadContacts} />
+        </div>
+      </div>
+
+      {/* Filtros */}
+      <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+        <div className="flex gap-6">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={filterByEmail}
+              onChange={(e) => setFilterByEmail(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 dark:border-gray-600"
+            />
+            <span className="text-sm text-gray-700 dark:text-gray-300">
+              ✉️ Apenas com Email
+            </span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={filterByPhone}
+              onChange={(e) => setFilterByPhone(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 dark:border-gray-600"
+            />
+            <span className="text-sm text-gray-700 dark:text-gray-300">
+              📱 Apenas com Telefone
+            </span>
+          </label>
         </div>
       </div>
 
@@ -120,7 +154,11 @@ export default function Contacts() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {contacts.map((contact) => (
+                {contacts.filter(c => {
+                  if (filterByEmail && !c.email) return false
+                  if (filterByPhone && !c.phone) return false
+                  return true
+                }).map((contact) => (
                   <tr
                     key={contact.id}
                     className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"

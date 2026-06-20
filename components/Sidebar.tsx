@@ -7,12 +7,8 @@ interface SidebarProps {
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-  { id: 'clientes', label: 'Clientes', icon: '🏪' },
-  { id: 'colegas', label: 'Equipa', icon: '💼' },
-  { id: 'contacts', label: 'Todos', icon: '👥' },
+  { id: 'contacts', label: 'Contactos', icon: '👥' },
   { id: 'lists', label: 'Listas', icon: '📋' },
-  { id: 'campaigns', label: 'Campanhas', icon: '✉️' },
-  { id: 'new-campaign', label: 'Nova Campanha', icon: '➕' },
   { id: 'settings', label: 'Configurações', icon: '⚙️' },
 ]
 

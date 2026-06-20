@@ -6,7 +6,7 @@ import Sidebar from '@/components/Sidebar'
 import Topbar from '@/components/Topbar'
 import Contacts from '@/components/Contacts'
 
-type Page = 'dashboard' | 'clientes' | 'colegas' | 'contacts' | 'lists' | 'campaigns' | 'new-campaign' | 'settings'
+type Page = 'dashboard' | 'contacts' | 'lists' | 'settings'
 
 export default function Home() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard')

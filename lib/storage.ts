@@ -67,6 +67,8 @@ export function loadState(): AppState {
 export function saveState(state: AppState): void {
   if (typeof window === 'undefined') return
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+  // Dispatch custom event for same-tab updates
+  window.dispatchEvent(new Event('storageUpdate'))
 }
 
 function getInitialState(): AppState {
