@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.NEXT_PUBLIC_RESEND_KEY)
-
 export async function POST(request: NextRequest) {
   try {
+    const apiKey = process.env.RESEND_KEY
+
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: 'RESEND_KEY não está configurada no servidor' },
+        { status: 500 }
+      )
+    }
+
+    const resend = new Resend(apiKey)
+
     const { to, subject, html, from } = await request.json()
 
     if (!to || !subject || !html) {
@@ -15,7 +24,7 @@ export async function POST(request: NextRequest) {
     }
 
     const response = await resend.emails.send({
-      from: from || process.env.NEXT_PUBLIC_RESEND_FROM || 'onboarding@resend.dev',
+      from: from || process.env.RESEND_FROM || 'onboarding@resend.dev',
       to,
       subject,
       html,

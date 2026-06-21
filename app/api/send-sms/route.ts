@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import twilio from 'twilio'
 
-const accountSid = process.env.NEXT_PUBLIC_TWILIO_SID
-const authToken = process.env.NEXT_PUBLIC_TWILIO_TOKEN
-
-const client = twilio(accountSid, authToken)
-
 export async function POST(request: NextRequest) {
   try {
+    const accountSid = process.env.TWILIO_SID
+    const authToken = process.env.TWILIO_TOKEN
+
+    if (!accountSid || !authToken) {
+      return NextResponse.json(
+        { error: 'TWILIO_SID ou TWILIO_TOKEN não estão configurados no servidor' },
+        { status: 500 }
+      )
+    }
+
+    const client = twilio(accountSid, authToken)
+
     const { to, body, from } = await request.json()
 
     if (!to || !body) {
@@ -19,7 +26,7 @@ export async function POST(request: NextRequest) {
 
     const message = await client.messages.create({
       body,
-      from: from || process.env.NEXT_PUBLIC_TWILIO_FROM,
+      from: from || process.env.TWILIO_FROM,
       to,
     })
 
