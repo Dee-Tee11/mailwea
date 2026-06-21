@@ -14,7 +14,6 @@ const titles: Record<string, string> = {
   test: 'Teste Rápido',
   campaigns: 'Campanhas',
   'new-campaign': 'Nova Campanha',
-  settings: 'Configurações',
 }
 
 export default function Topbar({ page }: TopbarProps) {

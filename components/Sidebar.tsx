@@ -10,7 +10,6 @@ const navItems = [
   { id: 'contacts', label: 'Contactos', icon: '👥' },
   { id: 'send', label: 'Enviar', icon: '📤' },
   { id: 'test', label: 'Teste', icon: '🧪' },
-  { id: 'settings', label: 'Configurações', icon: '⚙️' },
 ]
 
 export default function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
@@ -49,14 +48,9 @@ export default function Sidebar({ currentPage, setCurrentPage }: SidebarProps) {
         </div>
       </div>
 
-      {/* Status */}
+      {/* Footer */}
       <div className="p-4 border-t border-gray-200 dark:border-gray-800 text-xs">
-        <div className="font-semibold text-gray-600 dark:text-gray-400 mb-2">Estado das chaves</div>
-        <div className="space-y-1 text-gray-600 dark:text-gray-400">
-          <div>🔴 Email</div>
-          <div>🔴 SMS</div>
-        </div>
-        <div className="text-xs text-gray-500 mt-2">Dados guardados no browser</div>
+        <div className="text-xs text-gray-500">Dados guardados no browser</div>
       </div>
     </nav>
   )

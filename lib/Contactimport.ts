@@ -107,9 +107,17 @@ function inferTypeFromText(raw: string): 'cliente' | 'colega' | 'outro' {
 
 // ---------------------------------------------------------------------------
 // Parsing principal: recebe linhas (cabeçalho + dados) e devolve contactos
+//
+// forcedType: quando definido, ignora a inferência a partir da coluna de
+// tipo/tags e aplica este tipo a TODOS os contactos importados (útil quando
+// o import vem de um botão específico, ex: "Adicionar Equipa").
 // ---------------------------------------------------------------------------
 
-export function parseRows(rows: string[][], startId: number): ImportResult {
+export function parseRows(
+  rows: string[][],
+  startId: number,
+  forcedType?: 'cliente' | 'colega' | 'outro'
+): ImportResult {
   const errors: ImportError[] = []
   const valid: Contact[] = []
 
@@ -205,10 +213,11 @@ export function parseRows(rows: string[][], startId: number): ImportResult {
       return
     }
 
-    // Tipo: usa coluna "tags"/"tipo de cliente" para inferir cliente/colega/outro,
-    // mas também guarda o valor original (texto livre) nas notas.
+    // Tipo: se forcedType estiver definido (import a partir de um botão
+    // específico, ex: "Adicionar Equipa"), usa-o sempre. Caso contrário,
+    // usa a coluna "tags"/"tipo de cliente" para inferir cliente/colega/outro.
     const typeRaw = get('tags')
-    const type = typeRaw ? inferTypeFromText(typeRaw) : 'cliente'
+    const type = forcedType ?? (typeRaw ? inferTypeFromText(typeRaw) : 'cliente')
 
     // Junta colunas não mapeadas (datas, resultados, observações, links, etc.)
     // ao campo notes, no formato "Cabeçalho: valor"
@@ -220,7 +229,7 @@ export function parseRows(rows: string[][], startId: number): ImportResult {
       if (value) extraParts.push(`${header}: ${value}`)
     })
     // Se a coluna de tipo tinha texto livre que não é um dos 3 valores exatos,
-    // preserva o valor original nas notas também.
+    // preserva o valor original nas notas também (mesmo com forcedType).
     if (typeRaw) {
       extraParts.unshift(`Tipo de cliente: ${typeRaw}`)
     }
@@ -243,7 +252,11 @@ export function parseRows(rows: string[][], startId: number): ImportResult {
   return { valid, errors, detectedColumns, unmappedHeaders }
 }
 
-export async function importContactsFile(file: File, startId: number): Promise<ImportResult> {
+export async function importContactsFile(
+  file: File,
+  startId: number,
+  forcedType?: 'cliente' | 'colega' | 'outro'
+): Promise<ImportResult> {
   const rows = await fileToRows(file)
-  return parseRows(rows, startId)
+  return parseRows(rows, startId, forcedType)
 }

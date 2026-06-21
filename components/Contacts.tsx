@@ -4,16 +4,22 @@ import { useEffect, useState } from 'react'
 import { Contact, loadState, saveState, getTypeLabel } from '@/lib/storage'
 import ContactsImport from './ContactsImport'
 
+type ContactType = 'cliente' | 'colega' | 'outro'
+type Tab = 'all' | 'cliente' | 'colega'
+
 export default function Contacts() {
   const [contacts, setContacts] = useState<Contact[]>([])
+  const [activeTab, setActiveTab] = useState<Tab>('all')
+
   const [showModal, setShowModal] = useState(false)
+  const [modalType, setModalType] = useState<ContactType>('cliente')
+
   const [filterByEmail, setFilterByEmail] = useState(false)
   const [filterByPhone, setFilterByPhone] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    type: 'cliente' as const,
     company: '',
     list: 'Newsletter',
     tags: '',
@@ -27,6 +33,11 @@ export default function Contacts() {
   const loadContacts = () => {
     const state = loadState()
     setContacts(state.contacts)
+  }
+
+  const openAddModal = (type: ContactType) => {
+    setModalType(type)
+    setShowModal(true)
   }
 
   const handleAddContact = (e: React.FormEvent) => {
@@ -43,7 +54,7 @@ export default function Contacts() {
       name: formData.name,
       email: formData.email,
       phone: formData.phone,
-      type: formData.type,
+      type: modalType,
       company: formData.company,
       list: formData.list,
       tags: formData.tags ? formData.tags.split(',').map(t => t.trim()) : [],
@@ -60,7 +71,6 @@ export default function Contacts() {
       name: '',
       email: '',
       phone: '',
-      type: 'cliente',
       company: '',
       list: 'Newsletter',
       tags: '',
@@ -77,26 +87,84 @@ export default function Contacts() {
     }
   }
 
+  // Filtra por aba (Todos / Clientes / Equipa) e depois pelos checkboxes de email/telefone
+  const filteredContacts = contacts.filter((c) => {
+    if (activeTab !== 'all' && c.type !== activeTab) return false
+    if (filterByEmail && !c.email) return false
+    if (filterByPhone && !c.phone) return false
+    return true
+  })
+
+  const countFor = (tab: Tab) =>
+    contacts.filter((c) => {
+      if (tab !== 'all' && c.type !== tab) return false
+      if (filterByEmail && !c.email) return false
+      if (filterByPhone && !c.phone) return false
+      return true
+    }).length
+
+  const tabs: { id: Tab; label: string }[] = [
+    { id: 'all', label: 'Todos' },
+    { id: 'cliente', label: 'Clientes' },
+    { id: 'colega', label: 'Equipa' },
+  ]
+
   return (
     <div className="space-y-6">
-      {/* Header com botão */}
-      <div className="flex justify-between items-center">
+      {/* Header com botões */}
+      <div className="flex justify-between items-start flex-wrap gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Contactos</h2>
-          <p className="text-gray-500 dark:text-gray-400">Gerir contactos ({contacts.filter(c => {
-            if (filterByEmail && !c.email) return false
-            if (filterByPhone && !c.phone) return false
-            return true
-          }).length})</p>
+          <p className="text-gray-500 dark:text-gray-400">
+            Gerir contactos ({filteredContacts.length})
+          </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
-            onClick={() => setShowModal(true)}
+            onClick={() => openAddModal('cliente')}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
           >
-            ➕ Adicionar Contacto
+            ➕ Adicionar Cliente
           </button>
-          <ContactsImport onImportComplete={loadContacts} />
+          <ContactsImport
+            onImportComplete={loadContacts}
+            forcedType="cliente"
+            buttonLabel="📥 Importar Clientes"
+            modalTitle="Importar Clientes"
+            className="bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-800 dark:text-blue-100 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          />
+          <button
+            onClick={() => openAddModal('colega')}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          >
+            ➕ Adicionar Equipa
+          </button>
+          <ContactsImport
+            onImportComplete={loadContacts}
+            forcedType="colega"
+            buttonLabel="📥 Importar Equipa"
+            modalTitle="Importar Equipa"
+            className="bg-purple-100 hover:bg-purple-200 dark:bg-purple-900 dark:hover:bg-purple-800 text-purple-800 dark:text-purple-100 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          />
+        </div>
+      </div>
+
+      {/* Abas */}
+      <div className="border-b border-gray-200 dark:border-gray-800">
+        <div className="flex gap-1">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                activeTab === tab.id
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+              }`}
+            >
+              {tab.label} ({countFor(tab.id)})
+            </button>
+          ))}
         </div>
       </div>
 
@@ -130,15 +198,24 @@ export default function Contacts() {
 
       {/* Lista de contactos */}
       <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
-        {contacts.length === 0 ? (
+        {filteredContacts.length === 0 ? (
           <div className="p-8 text-center">
-            <p className="text-gray-500 dark:text-gray-400 mb-4">Sem contactos ainda</p>
-            <button
-              onClick={() => setShowModal(true)}
-              className="text-blue-600 hover:text-blue-700 font-medium"
-            >
-              Adicionar o primeiro contacto
-            </button>
+            <p className="text-gray-500 dark:text-gray-400 mb-4">Sem contactos nesta vista</p>
+            <div className="flex justify-center gap-3">
+              <button
+                onClick={() => openAddModal('cliente')}
+                className="text-blue-600 hover:text-blue-700 font-medium"
+              >
+                Adicionar um cliente
+              </button>
+              <span className="text-gray-300 dark:text-gray-600">·</span>
+              <button
+                onClick={() => openAddModal('colega')}
+                className="text-purple-600 hover:text-purple-700 font-medium"
+              >
+                Adicionar à equipa
+              </button>
+            </div>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -154,11 +231,7 @@ export default function Contacts() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {contacts.filter(c => {
-                  if (filterByEmail && !c.email) return false
-                  if (filterByPhone && !c.phone) return false
-                  return true
-                }).map((contact) => (
+                {filteredContacts.map((contact) => (
                   <tr
                     key={contact.id}
                     className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
@@ -188,11 +261,13 @@ export default function Contacts() {
         )}
       </div>
 
-      {/* Modal para adicionar contacto */}
+      {/* Modal para adicionar contacto (cliente ou equipa, conforme modalType) */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 max-w-md w-full p-6">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Adicionar Contacto</h3>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+              {modalType === 'cliente' ? 'Adicionar Cliente' : 'Adicionar Membro da Equipa'}
+            </h3>
 
             <form onSubmit={handleAddContact} className="space-y-4">
               {/* Nome */}
@@ -239,22 +314,6 @@ export default function Contacts() {
                 />
               </div>
 
-              {/* Tipo */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Tipo
-                </label>
-                <select
-                  value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value as 'cliente' | 'colega' | 'outro' })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="cliente">Cliente</option>
-                  <option value="colega">Colega</option>
-                  <option value="outro">Outro</option>
-                </select>
-              </div>
-
               {/* Empresa */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -294,7 +353,11 @@ export default function Contacts() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
+                  className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors font-medium ${
+                    modalType === 'cliente'
+                      ? 'bg-blue-600 hover:bg-blue-700'
+                      : 'bg-purple-600 hover:bg-purple-700'
+                  }`}
                 >
                   Adicionar
                 </button>

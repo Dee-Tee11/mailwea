@@ -8,7 +8,7 @@ import Contacts from '@/components/Contacts'
 import SendMessages from '@/components/SendMessages'
 import TestSend from '@/components/Testsend'
 
-type Page = 'dashboard' | 'contacts' | 'send' | 'test' | 'settings'
+type Page = 'dashboard' | 'contacts' | 'send' | 'test'
 
 export default function Home() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard')
@@ -30,7 +30,6 @@ export default function Home() {
           {currentPage === 'contacts' && <Contacts />}
           {currentPage === 'send' && <SendMessages />}
           {currentPage === 'test' && <TestSend />}
-          {/* Outras páginas serão adicionadas aqui */}
         </div>
       </div>
     </div>

@@ -6,8 +6,16 @@ import { importContactsFile, ImportResult } from '@/lib/Contactimport'
 
 export default function ContactsImport({
   onImportComplete,
+  forcedType,
+  buttonLabel,
+  modalTitle,
+  className,
 }: {
   onImportComplete: () => void
+  forcedType?: 'cliente' | 'colega' | 'outro'
+  buttonLabel?: string
+  modalTitle?: string
+  className?: string
 }) {
   const [showModal, setShowModal] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -25,7 +33,7 @@ export default function ContactsImport({
 
     try {
       const state = loadState()
-      const parsed = await importContactsFile(file, state.nextId)
+      const parsed = await importContactsFile(file, state.nextId, forcedType)
       setResult(parsed)
     } catch (error) {
       setFileError(`Erro ao ler o ficheiro: ${(error as Error).message}`)
@@ -72,16 +80,19 @@ export default function ContactsImport({
     <>
       <button
         onClick={() => setShowModal(true)}
-        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+        className={
+          className ||
+          'bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors'
+        }
       >
-        📥 Importar (CSV/Excel)
+        {buttonLabel || '📥 Importar (CSV/Excel)'}
       </button>
 
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 max-w-2xl w-full max-h-[32rem] overflow-y-auto p-6">
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              Importar Contactos
+              {modalTitle || 'Importar Contactos'}
             </h3>
 
             {!result ? (
@@ -124,7 +135,14 @@ export default function ContactsImport({
                       <li>Apenas <strong>nome</strong> ou <strong>email</strong> são obrigatórios (pelo menos um)</li>
                       <li>Colunas reconhecidas: Nome/Name, Email, Telefone/Telemóvel/Phone, Empresa/Company, Lista/List, Tipo/Tags</li>
                       <li>Colunas não reconhecidas (datas, observações, links, etc.) são guardadas nas notas do contacto</li>
-                      <li>Se houver coluna de tipo (ex: 'Tipo de cliente'), tentamos classificar automaticamente como Cliente, Colega ou Outro</li>
+                      {forcedType ? (
+                        <li>
+                          Todos os contactos importados aqui serão marcados como{' '}
+                          <strong>{getTypeLabel(forcedType)}</strong>
+                        </li>
+                      ) : (
+                        <li>Se houver coluna de tipo (ex: 'Tipo de cliente'), tentamos classificar automaticamente como Cliente, Colega ou Outro</li>
+                      )}
                     </ul>
                   </p>
                 </div>
