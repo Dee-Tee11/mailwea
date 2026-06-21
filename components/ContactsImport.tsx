@@ -141,7 +141,7 @@ export default function ContactsImport({
                           <strong>{getTypeLabel(forcedType)}</strong>
                         </li>
                       ) : (
-                        <li>Se houver coluna de tipo (ex: 'Tipo de cliente'), tentamos classificar automaticamente como Cliente, Colega ou Outro</li>
+                        <li>Se houver coluna de tipo (ex: &apos;Tipo de cliente&apos;), tentamos classificar automaticamente como Cliente, Colega ou Outro</li>
                       )}
                     </ul>
                   </p>
