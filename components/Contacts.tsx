@@ -26,6 +26,9 @@ export default function Contacts() {
     notes: '',
   })
 
+  // Seleção em bulk
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+
   useEffect(() => {
     loadContacts()
   }, [])
@@ -83,8 +86,66 @@ export default function Contacts() {
       const state = loadState()
       state.contacts = state.contacts.filter(c => c.id !== id)
       saveState(state)
+      setSelectedIds(prev => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
       loadContacts()
     }
+  }
+
+  // ---------------------------------------------------------------------
+  // Seleção em bulk
+  // ---------------------------------------------------------------------
+
+  const toggleSelect = (id: number) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  const toggleSelectAllVisible = () => {
+    const visibleIds = filteredContacts.map(c => c.id)
+    const allVisibleSelected = visibleIds.every(id => selectedIds.has(id)) && visibleIds.length > 0
+
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (allVisibleSelected) {
+        // Desmarca apenas os visíveis
+        visibleIds.forEach(id => next.delete(id))
+      } else {
+        // Marca todos os visíveis
+        visibleIds.forEach(id => next.add(id))
+      }
+      return next
+    })
+  }
+
+  const clearSelection = () => setSelectedIds(new Set())
+
+  const handleBulkDelete = () => {
+    if (selectedIds.size === 0) return
+
+    const confirmMsg =
+      selectedIds.size === 1
+        ? 'Tem a certeza que quer eliminar 1 contacto?'
+        : `Tem a certeza que quer eliminar ${selectedIds.size} contactos?`
+
+    if (!confirm(confirmMsg)) return
+
+    const state = loadState()
+    state.contacts = state.contacts.filter(c => !selectedIds.has(c.id))
+    saveState(state)
+
+    clearSelection()
+    loadContacts()
   }
 
   // Filtra por aba (Todos / Clientes / Equipa) e depois pelos checkboxes de email/telefone
@@ -108,6 +169,16 @@ export default function Contacts() {
     { id: 'cliente', label: 'Clientes' },
     { id: 'colega', label: 'Equipa' },
   ]
+
+  const visibleIds = filteredContacts.map(c => c.id)
+  const allVisibleSelected = visibleIds.length > 0 && visibleIds.every(id => selectedIds.has(id))
+  const someVisibleSelected = visibleIds.some(id => selectedIds.has(id))
+
+  // Limpa a seleção sempre que a aba ou os filtros mudam, para evitar
+  // confusão sobre o que está selecionado mas escondido
+  useEffect(() => {
+    setSelectedIds(new Set())
+  }, [activeTab, filterByEmail, filterByPhone])
 
   return (
     <div className="space-y-6">
@@ -196,6 +267,29 @@ export default function Contacts() {
         </div>
       </div>
 
+      {/* Barra de ações em bulk (aparece só quando há seleção) */}
+      {someVisibleSelected && (
+        <div className="bg-blue-50 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-700 rounded-lg p-3 flex items-center justify-between gap-4 flex-wrap">
+          <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+            {selectedIds.size} contacto(s) selecionado(s)
+          </span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={clearSelection}
+              className="text-sm text-blue-700 dark:text-blue-300 hover:underline"
+            >
+              Limpar seleção
+            </button>
+            <button
+              onClick={handleBulkDelete}
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+            >
+              🗑️ Eliminar selecionados ({selectedIds.size})
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Lista de contactos */}
       <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
         {filteredContacts.length === 0 ? (
@@ -222,6 +316,15 @@ export default function Contacts() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                 <tr>
+                  <th className="px-4 py-3 text-left w-10">
+                    <input
+                      type="checkbox"
+                      checked={allVisibleSelected}
+                      onChange={toggleSelectAllVisible}
+                      className="w-4 h-4 rounded border-gray-300 dark:border-gray-600"
+                      aria-label="Selecionar todos"
+                    />
+                  </th>
                   <th className="px-6 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Nome</th>
                   <th className="px-6 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Email</th>
                   <th className="px-6 py-3 text-left font-semibold text-gray-700 dark:text-gray-300">Telefone</th>
@@ -234,8 +337,19 @@ export default function Contacts() {
                 {filteredContacts.map((contact) => (
                   <tr
                     key={contact.id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    className={`hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
+                      selectedIds.has(contact.id) ? 'bg-blue-50 dark:bg-blue-900/30' : ''
+                    }`}
                   >
+                    <td className="px-4 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(contact.id)}
+                        onChange={() => toggleSelect(contact.id)}
+                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-600"
+                        aria-label={`Selecionar ${contact.name}`}
+                      />
+                    </td>
                     <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{contact.name}</td>
                     <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{contact.email}</td>
                     <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{contact.phone || '-'}</td>
