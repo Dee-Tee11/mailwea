@@ -95,6 +95,37 @@ export default function Contacts() {
     }
   }
 
+  const handleToggleType = (id: number) => {
+    const state = loadState()
+    const contact = state.contacts.find((c) => c.id === id)
+    if (!contact) return
+
+    // Alterna entre 'cliente' e 'colega' (equipa). Para outros tipos, define como 'cliente'.
+    contact.type = contact.type === 'cliente' ? 'colega' : 'cliente'
+
+    saveState(state)
+    loadContacts()
+  }
+
+  const handleBulkToggleType = () => {
+    if (selectedIds.size === 0) return
+
+    if (!confirm(`Tem a certeza que quer alternar o tipo de ${selectedIds.size} contacto(s)?`)) return
+
+    const state = loadState()
+    state.contacts.forEach((c) => {
+      if (selectedIds.has(c.id)) {
+        if (c.type === 'cliente') c.type = 'colega'
+        else if (c.type === 'colega') c.type = 'cliente'
+        else c.type = 'cliente'
+      }
+    })
+
+    saveState(state)
+    clearSelection()
+    loadContacts()
+  }
+
   // ---------------------------------------------------------------------
   // Seleção em bulk
   // ---------------------------------------------------------------------
@@ -281,6 +312,12 @@ export default function Contacts() {
               Limpar seleção
             </button>
             <button
+              onClick={handleBulkToggleType}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+            >
+              🔁 Alternar tipo ({selectedIds.size})
+            </button>
+            <button
               onClick={handleBulkDelete}
               className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
             >
@@ -360,12 +397,20 @@ export default function Contacts() {
                     </td>
                     <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{contact.company || '-'}</td>
                     <td className="px-6 py-4">
-                      <button
-                        onClick={() => handleDeleteContact(contact.id)}
-                        className="text-red-600 hover:text-red-700 text-sm font-medium"
-                      >
-                        Eliminar
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => handleToggleType(contact.id)}
+                          className="text-sm font-medium text-blue-500 hover:text-blue-400"
+                        >
+                          {contact.type === 'cliente' ? 'Mover para Equipa' : 'Mover para Cliente'}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteContact(contact.id)}
+                          className="text-red-600 hover:text-red-700 text-sm font-medium"
+                        >
+                          Eliminar
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
